@@ -1,0 +1,29 @@
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+*.iml
+.idea/
+.DS_Store
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/App.framework
+android/.gradle/
+android/local.properties
+android/key.properties
+
+# Llaves de firma (NUNCA subirlas)
+*.jks
+*.keystore
+android/key.properties
+# Firebase
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+
+# Llave APNs de Apple (nunca subirla)
+*.p8
