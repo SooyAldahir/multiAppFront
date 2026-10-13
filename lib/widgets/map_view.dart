@@ -17,6 +17,7 @@ class AppMap extends StatelessWidget {
     this.onTap,
     this.onReady,
     this.height = 240,
+    this.onLocateMe,
   });
 
   final MapController controller;
@@ -29,6 +30,9 @@ class AppMap extends StatelessWidget {
   final void Function(LatLng point)? onTap;
   final VoidCallback? onReady;
   final double height;
+
+  /// Si se indica, aparece un botón "mi ubicación" sobre el mapa.
+  final VoidCallback? onLocateMe;
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +62,24 @@ class AppMap extends StatelessWidget {
               userAgentPackageName: AppConfig.packageName,
             ),
             MarkerLayer(markers: markers),
-            SimpleAttributionWidget(source: const Text('© OpenStreetMap')),
+            const SimpleAttributionWidget(source: Text('© OpenStreetMap')),
+            if (onLocateMe != null)
+              Align(
+                alignment: Alignment.topRight,
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Material(
+                    color: Colors.white,
+                    shape: const CircleBorder(),
+                    elevation: 3,
+                    child: IconButton(
+                      tooltip: 'Mi ubicación',
+                      onPressed: onLocateMe,
+                      icon: const Icon(Icons.my_location_rounded, color: Color(0xFF2F80ED)),
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

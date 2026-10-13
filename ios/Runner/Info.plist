@@ -22,6 +22,17 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.300205154711-b00hct7p4mauho50ueqsb2brq4ocp4i7</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
@@ -35,6 +46,8 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>MultiApp usa la cámara para tu foto de perfil y para calcular las calorías de tu comida.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>MultiApp usa Face ID para que entres a tu cuenta sin escribir tu contraseña.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>MultiApp usa tu ubicación para mostrarte tiendas cercanas y cómo llegar a tus lugares.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

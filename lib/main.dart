@@ -11,6 +11,7 @@ import 'core/theme.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/expenses/expense_categories.dart';
 import 'screens/shell/main_shell.dart';
+import 'services/ai_consent.dart';
 import 'services/auth_controller.dart';
 import 'services/notification_service.dart';
 import 'services/push_service.dart';
@@ -34,6 +35,9 @@ Future<void> main() async {
     NotificationService.instance.stop();
     categories.reset();
   };
+  // Permiso para la IA: se pide antes del primer uso y se recuerda por cuenta.
+  api.ensureAiConsent = AiConsent.ensure;
+  auth.addListener(() => AiConsent.forUser(auth.user?.id));
   unawaited(NotificationService.instance.init());
   auth.restore();
 
@@ -76,7 +80,10 @@ class MultiApp extends StatelessWidget {
       // Al iniciar o cerrar sesión se reconstruye el navegador completo,
       // así no quedan pantallas abiertas de la sesión anterior.
       key: ValueKey(status == AuthStatus.signedIn),
-      title: 'multiApp',
+      // Una llave distinta por estado: si se reusara la misma, Flutter conservaría el navegador
+      // anterior (y la pantalla de carga) en lugar de crear uno nuevo.
+      navigatorKey: status == AuthStatus.signedIn ? appNavigatorKey : null,
+      title: 'MultiApp',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       locale: const Locale('es', 'MX'),

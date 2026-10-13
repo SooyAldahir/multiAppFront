@@ -67,23 +67,56 @@ class _PlacesScreenState extends State<PlacesScreen> {
     }
   }
 
-  /// La ubicación es opcional: solo sirve para mostrar distancias y el punto azul.
-  Future<void> _locate() async {
+  /// La ubicación es opcional: sirve para centrar el mapa en ti, mostrar distancias y el punto azul.
+  Future<void> _locate({bool center = false}) async {
     try {
       final me = await LocationService.current();
       if (!mounted) return;
       setState(() => _me = me);
-      _fitAll();
-    } on LocationException {
-      // Sin ubicación la pantalla funciona igual.
+      final hint = LocationService.simulatorHint(me);
+      if (hint != null) showMessage(context, hint);
+      center ? _centerOnMe() : _fitAll();
+    } on LocationException catch (e) {
+      // Sin ubicación la pantalla funciona igual; solo se avisa si la pidió con el botón.
+      if (center && mounted) showMessage(context, e.message, error: true);
     }
   }
 
+  /// Radio para considerar un lugar "cerca" al abrir el mapa.
+  static const double _nearbyMeters = 30000;
+
   List<LatLng> get _points => [for (final p in _places) p.point, if (_me != null) _me!];
 
-  /// Ajusta el mapa para que se vean todos los lugares (y tu ubicación).
-  void _fitAll() {
+  /// Lugares cercanos a ti (si no sabemos dónde estás, todos).
+  List<LatLng> get _initialPoints {
+    if (_me == null) return _points;
+    const d = Distance();
+    return [
+      _me!,
+      for (final p in _places)
+        if (d.as(LengthUnit.Meter, _me!, p.point) <= _nearbyMeters) p.point,
+    ];
+  }
+
+  void _centerOnMe() {
+    if (_mapReady && _me != null) _map.move(_me!, 15);
+  }
+
+  /// Al abrir: tu ubicación y los lugares cercanos (no lugares de otra ciudad).
+  void _fitInitial() {
     if (!_mapReady) return;
+    final points = _initialPoints;
+    if (points.length > 1) {
+      _map.fitCamera(CameraFit.coordinates(coordinates: points, padding: const EdgeInsets.all(48), maxZoom: 16));
+    } else if (points.length == 1) {
+      _map.move(points.first, 15);
+    }
+  }
+
+  /// Botón "Ver todos": ajusta el mapa para que se vean todos los lugares y tu ubicación.
+  void _fitAll({bool all = false}) {
+    if (!_mapReady) return;
+    if (!all) return _fitInitial();
     final points = _points;
     if (points.length > 1) {
       _map.fitCamera(CameraFit.coordinates(coordinates: points, padding: const EdgeInsets.all(48), maxZoom: 16));
@@ -128,7 +161,7 @@ class _PlacesScreenState extends State<PlacesScreen> {
         title: const Text('Lugares'),
         actions: [
           if (_places.isNotEmpty)
-            IconButton(tooltip: 'Ver todos', onPressed: _fitAll, icon: const Icon(Icons.zoom_out_map_rounded)),
+            IconButton(tooltip: 'Ver todos', onPressed: () => _fitAll(all: true), icon: const Icon(Icons.zoom_out_map_rounded)),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -146,9 +179,10 @@ class _PlacesScreenState extends State<PlacesScreen> {
                   child: AppMap(
                     controller: _map,
                     markers: markers,
-                    fitPoints: points,
-                    center: points.length == 1 ? points.first : null,
+                    fitPoints: _initialPoints,
+                    center: _me ?? (points.length == 1 ? points.first : null),
                     height: 260,
+                    onLocateMe: () => _locate(center: true),
                     onReady: () {
                       _mapReady = true;
                       _fitAll();

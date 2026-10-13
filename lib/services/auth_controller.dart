@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../core/api_client.dart';
 import '../models/models.dart';
+import 'social_sign_in.dart';
 
 enum AuthStatus { loading, signedOut, signedIn }
 
@@ -77,13 +78,24 @@ class AuthController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> login(String email, String password) async {
+  /// [beforeEnter] se ejecuta cuando el servidor ya aceptó los datos pero antes de entrar a la app
+  /// (la pantalla de acceso sigue abierta): sirve para ofrecer guardar el acceso con biometría.
+  Future<void> login(String email, String password, {Future<void> Function()? beforeEnter}) async {
     final data = await _api.post('/auth/login', {'email': email, 'password': password});
+    if (beforeEnter != null) await beforeEnter();
     await _saveSession(data as Map<String, dynamic>);
   }
 
-  Future<void> register(String name, String email, String password) async {
+  /// Inicia sesión (o crea la cuenta) con Google o Apple. Devuelve true si la cuenta es nueva.
+  Future<bool> loginWithSocial(SocialCredential credential) async {
+    final data = await _api.post('/auth/${credential.provider}', credential.toJson()) as Map<String, dynamic>;
+    await _saveSession(data);
+    return data['created'] == true;
+  }
+
+  Future<void> register(String name, String email, String password, {Future<void> Function()? beforeEnter}) async {
     final data = await _api.post('/auth/register', {'name': name, 'email': email, 'password': password});
+    if (beforeEnter != null) await beforeEnter();
     await _saveSession(data as Map<String, dynamic>);
   }
 
@@ -111,6 +123,7 @@ class AuthController extends ChangeNotifier {
     } finally {
       _signingOut = false;
     }
+    await SocialSignIn.signOutGoogle();
     await clearSession();
   }
 }

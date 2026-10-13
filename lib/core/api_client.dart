@@ -48,10 +48,27 @@ class ApiClient {
   Future<dynamic> get(String path, {Map<String, dynamic>? query}) =>
       _send(() => _client.get(_uri(path, query), headers: _headers));
 
-  Future<dynamic> post(String path, [Object? body, Duration? timeout]) => _send(
-        () => _client.post(_uri(path), headers: _headers, body: jsonEncode(body ?? {})),
-        timeout: timeout,
-      );
+  Future<dynamic> post(String path, [Object? body, Duration? timeout]) async {
+    await _checkAiConsent(path);
+    return _send(
+      () => _client.post(_uri(path), headers: _headers, body: jsonEncode(body ?? {})),
+      timeout: timeout,
+      // Un 401 en /auth/* es "contraseña incorrecta", no "sesión vencida".
+      sessionCall: !path.startsWith('/auth/'),
+    );
+  }
+
+  /// Rutas que mandan datos a la IA (proveedor externo). Antes del primer uso se pide permiso.
+  static final RegExp aiPaths = RegExp(
+    r'^/(recipes/generate|workouts/generate|nutrition/estimate|nutrition/estimate-photo|shopping/where-to-buy|budget/periods/\d+/insights)$',
+  );
+
+  /// Pide el consentimiento para la IA; debe lanzar [ApiException] si la persona no acepta.
+  Future<void> Function()? ensureAiConsent;
+
+  Future<void> _checkAiConsent(String path) async {
+    if (ensureAiConsent != null && aiPaths.hasMatch(path)) await ensureAiConsent!();
+  }
 
   Future<dynamic> put(String path, Object body) =>
       _send(() => _client.put(_uri(path), headers: _headers, body: jsonEncode(body)));
@@ -63,7 +80,7 @@ class ApiClient {
         () => _client.delete(_uri(path), headers: _headers, body: body == null ? null : jsonEncode(body)),
       );
 
-  Future<dynamic> _send(Future<http.Response> Function() request, {Duration? timeout}) async {
+  Future<dynamic> _send(Future<http.Response> Function() request, {Duration? timeout, bool sessionCall = true}) async {
     http.Response response;
     try {
       response = await request().timeout(timeout ?? AppConfig.requestTimeout);
@@ -79,7 +96,7 @@ class ApiClient {
 
     if (response.statusCode >= 200 && response.statusCode < 300) return body;
 
-    if (response.statusCode == 401 && token != null) onUnauthorized?.call();
+    if (response.statusCode == 401 && token != null && sessionCall) onUnauthorized?.call();
 
     final map = body is Map<String, dynamic> ? body : const <String, dynamic>{};
     final details = map['details'] is Map<String, dynamic> ? map['details'] as Map<String, dynamic> : null;

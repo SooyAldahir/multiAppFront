@@ -289,8 +289,6 @@ class ProfileRepository {
   ProfileRepository(this._api);
   final ApiClient _api;
 
-  Future<User> me() async => User.fromJson(await _api.get('/users/me') as Map<String, dynamic>);
-
   /// changes: name, phone, birthDate (YYYY-MM-DD), city, bio. Usa null para borrar un campo.
   Future<User> update(Map<String, dynamic> changes) async =>
       User.fromJson(await _api.patch('/users/me', changes) as Map<String, dynamic>);
@@ -306,14 +304,25 @@ class ProfileRepository {
 
   Future<User> deleteAvatar() async => User.fromJson(await _api.delete('/users/me/avatar') as Map<String, dynamic>);
 
-  Future<void> changePassword(String current, String next) =>
-      _api.put('/users/me/password', {'currentPassword': current, 'newPassword': next});
+  /// [current] puede ser null en cuentas de Google/Apple que aún no tienen contraseña.
+  Future<void> changePassword(String? current, String next) =>
+      _api.put('/users/me/password', {if (current != null) 'currentPassword': current, 'newPassword': next});
+
+  Future<User> me() async => User.fromJson(await _api.get('/users/me') as Map<String, dynamic>);
+
+  /// Comprueba la contraseña (para activar la biometría) sin cambiar la sesión actual.
+  Future<void> verifyPassword(String email, String password) =>
+      _api.post('/auth/login', {'email': email, 'password': password});
 
   /// Devuelve { token, user } (el token cambia porque incluye el correo).
   Future<Map<String, dynamic>> changeEmail(String email, String password) async =>
       await _api.put('/users/me/email', {'email': email, 'password': password}) as Map<String, dynamic>;
 
   Future<void> deleteAccount(String password) => _api.delete('/users/me', {'password': password});
+
+  /// Cuentas sin contraseña: se confirma volviendo a entrar con Google/Apple.
+  Future<void> deleteAccountWithProvider(String provider, String idToken) =>
+      _api.delete('/users/me', {'provider': provider, 'idToken': idToken});
 
   Future<NotificationPrefs> notificationPrefs() async =>
       NotificationPrefs.fromJson(await _api.get('/users/me/notifications') as Map<String, dynamic>);

@@ -12,6 +12,8 @@ class User {
     this.birthDate,
     this.city,
     this.bio,
+    this.hasPassword = true,
+    this.providers = const [],
   });
 
   final int id;
@@ -22,6 +24,12 @@ class User {
   final DateTime? birthDate;
   final String? city;
   final String? bio;
+
+  /// false si la cuenta se creó con Google o Apple y aún no tiene contraseña.
+  final bool hasPassword;
+
+  /// Proveedores vinculados: 'google', 'apple'.
+  final List<String> providers;
 
   String get firstName => name.trim().split(RegExp(r'\s+')).first;
 
@@ -50,6 +58,8 @@ class User {
         birthDate: j['birthDate'] == null ? null : DateTime.tryParse(j['birthDate'] as String),
         city: j['city'] as String?,
         bio: j['bio'] as String?,
+        hasPassword: j['hasPassword'] as bool? ?? true,
+        providers: [for (final p in (j['providers'] as List? ?? const [])) p.toString()],
       );
 
   Map<String, dynamic> toJson() => {
@@ -61,6 +71,8 @@ class User {
         'birthDate': birthDate == null ? null : dateOnly(birthDate!),
         'city': city,
         'bio': bio,
+        'hasPassword': hasPassword,
+        'providers': providers,
       };
 
   static String dateOnly(DateTime d) =>

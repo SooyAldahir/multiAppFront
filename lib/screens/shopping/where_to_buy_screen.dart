@@ -68,7 +68,7 @@ class _WhereToBuyScreenState extends State<WhereToBuyScreen> {
     try {
       _origin = await LocationService.current();
       _originLabel = 'Tu ubicación';
-      _locationWarning = null;
+      _locationWarning = LocationService.simulatorHint(_origin!);
       return;
     } on LocationException catch (e) {
       _locationWarning = e.message;
@@ -171,6 +171,9 @@ class _WhereToBuyScreenState extends State<WhereToBuyScreen> {
                               fitPoints: [for (final s in stores) s.point, _origin!],
                               center: stores.isEmpty ? _origin : null,
                               height: 230,
+                              onLocateMe: () {
+                                if (_mapReady) _map.move(_origin!, 16);
+                              },
                               onReady: () {
                                 _mapReady = true;
                                 _fitAll();

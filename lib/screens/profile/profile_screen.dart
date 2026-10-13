@@ -10,6 +10,7 @@ import '../../widgets/common.dart';
 import '../health/health_profile_screen.dart';
 import 'edit_profile_screen.dart';
 import 'notification_settings_screen.dart';
+import '../auth/auth_widgets.dart';
 import 'security_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -95,7 +96,7 @@ class ProfileScreen extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.shield_outlined),
                 title: const Text('Cuenta y seguridad'),
-                subtitle: const Text('Contraseña, correo y eliminar cuenta', style: TextStyle(fontSize: 12)),
+                subtitle: const Text('Contraseña, biometría, privacidad y eliminar cuenta', style: TextStyle(fontSize: 12)),
                 trailing: const Icon(Icons.chevron_right_rounded),
                 onTap: () => _open(context, const SecurityScreen()),
               ),
@@ -126,6 +127,27 @@ class ProfileScreen extends StatelessWidget {
           padding: EdgeInsets.zero,
           child: Column(
             children: [
+              ListTile(
+                leading: const Icon(Icons.help_outline_rounded),
+                title: const Text('Ayuda y soporte'),
+                trailing: const Icon(Icons.open_in_new_rounded, size: 18),
+                onTap: () => openLink(context, AppConfig.supportUrl),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.privacy_tip_outlined),
+                title: const Text('Aviso de privacidad'),
+                trailing: const Icon(Icons.open_in_new_rounded, size: 18),
+                onTap: () => openLink(context, AppConfig.privacyUrl),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.description_outlined),
+                title: const Text('Términos y condiciones'),
+                trailing: const Icon(Icons.open_in_new_rounded, size: 18),
+                onTap: () => openLink(context, AppConfig.termsUrl),
+              ),
+              const Divider(height: 1),
               const ListTile(
                 leading: Icon(Icons.info_outline_rounded),
                 title: Text('Versión'),

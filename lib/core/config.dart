@@ -29,6 +29,13 @@ class AppConfig {
   }
 
   /// El servidor gratuito (Render + Azure SQL) puede tardar en "despertar" la primera vez.
+  /// Páginas públicas (aviso de privacidad, términos, eliminación de cuenta y soporte).
+  static const String legalBaseUrl = 'https://multiapp-api.onrender.com';
+  static const String privacyUrl = '$legalBaseUrl/privacidad';
+  static const String termsUrl = '$legalBaseUrl/terminos';
+  static const String supportUrl = '$legalBaseUrl/soporte';
+  static const String deleteAccountUrl = '$legalBaseUrl/eliminar-cuenta';
+
   static const Duration requestTimeout = Duration(seconds: 45);
 
   /// La IA puede tardar más en responder.
